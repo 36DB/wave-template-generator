@@ -43,7 +43,9 @@ export default function App() {
 
       setLoading(true);
 
-      const template = await fetch(`${import.meta.env.BASE_URL}template.txt`).then((r) => r.text());
+      const template = await fetch(
+        `${import.meta.env.BASE_URL}template.txt`
+      ).then((r) => r.text());
 
       // ===== 이전 글에서 가져올 값 =====
       let prevWaveNumber = "";
@@ -132,7 +134,9 @@ export default function App() {
 
   // ✅ 제목 복사 버튼 핸들러
   const handleCopyTitle = async () => {
-    const waveNum = (link.trim() ? currentWaveNumber : manualWaveNumber.trim()) || currentWaveNumber;
+    const waveNum =
+      (link.trim() ? currentWaveNumber : manualWaveNumber.trim()) ||
+      currentWaveNumber;
 
     if (!waveNum) {
       alert("먼저 템플릿을 생성하거나(크롤링) 첫 주자 웨이브 번호를 입력해주세요.");
@@ -149,6 +153,9 @@ export default function App() {
     (!!currentWaveNumber && currentWaveNumber.trim().length > 0) ||
     (!link.trim() && manualWaveNumber.trim().length > 0);
 
+  // ✅ 'ㅇㅇ'일 때만 식별코드 입력 활성화
+  const isAnon = name.trim() === "ㅇㅇ";
+
   return (
     <div className="container">
       <h1>웨이브 템플릿 생성기</h1>
@@ -164,13 +171,22 @@ export default function App() {
         type="text"
         placeholder="본인 닉네임(띄어쓰기 없이)"
         value={name}
-        onChange={(e) => setName(e.target.value)}
+        onChange={(e) => {
+          const next = e.target.value;
+          setName(next);
+
+          // ✅ 'ㅇㅇ'이 아니면 식별코드 입력 비활성 + 값도 비움
+          if (next.trim() !== "ㅇㅇ") {
+            setCode("");
+          }
+        }}
       />
 
       <input
         type="text"
         placeholder="본인 식별코드 (ㅇㅇ반고닉인 경우에만 입력)"
         value={code}
+        disabled={!isAnon}
         onChange={(e) => setCode(e.target.value)}
       />
 
