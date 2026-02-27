@@ -162,7 +162,7 @@ export default function App() {
 
       <input
         type="text"
-        placeholder="본인 닉네임"
+        placeholder="본인 닉네임(띄어쓰기 없이)"
         value={name}
         onChange={(e) => setName(e.target.value)}
       />
