@@ -169,7 +169,7 @@ export default function App() {
 
       <input
         type="text"
-        placeholder="본인 식별코드 (ㅇㅇ반고닉인 경우에만 입력 / 그 외에는 선택)"
+        placeholder="본인 식별코드 (ㅇㅇ반고닉인 경우에만 입력)"
         value={code}
         onChange={(e) => setCode(e.target.value)}
       />
