@@ -12,7 +12,6 @@ export default function App() {
   const [manualWaveNumber, setManualWaveNumber] = useState("");
   const [loading, setLoading] = useState(false);
 
-  // ✅ 현재 사용할 웨이브 번호(숫자) 저장 (제목 복사용)
   const [currentWaveNumber, setCurrentWaveNumber] = useState("");
 
   const handleGenerate = async () => {
@@ -68,21 +67,21 @@ export default function App() {
         prevWaveNumber = String(data.waveNumber).trim();
         prevFlow = (data.flowLine || "").trim();
 
-        // ✅ 흐름도 정리: '- ->' 같은 깨짐을 '->'로 복원
+        //흐름도 정리: '- ->' 같은 깨짐을 '->'로 복원
         prevFlow = prevFlow.replace(/\s*-\s*->\s*/g, " -> ");
         prevFlow = prevFlow.replace(/\s+/g, " ").trim();
 
-        // ✅ 마지막에 화살표가 없으면 붙여서 이어붙이기 편하게
+        //마지막에 화살표가 없으면 붙여서 이어붙이기 편하게
         if (prevFlow && !prevFlow.endsWith("->")) {
           prevFlow += " ->";
         } else if (prevFlow && !prevFlow.endsWith(" ->")) {
           prevFlow = prevFlow.replace(/->$/g, " ->");
         }
 
-        // ✅ 제목 복사용 웨이브 번호 업데이트
+        //제목 복사용 웨이브 번호 업데이트
         setCurrentWaveNumber(prevWaveNumber);
       } else {
-        // ✅ 첫 주자: 입력한 웨이브 번호를 제목 복사용으로도 저장
+        //첫 주자: 입력한 웨이브 번호를 제목 복사용으로도 저장
         setCurrentWaveNumber(manualWaveNumber.trim());
       }
 
@@ -132,7 +131,7 @@ export default function App() {
     }
   };
 
-  // ✅ 제목 복사 버튼 핸들러
+  //제목 복사 버튼 핸들러
   const handleCopyTitle = async () => {
     const waveNum =
       (link.trim() ? currentWaveNumber : manualWaveNumber.trim()) ||
@@ -148,12 +147,12 @@ export default function App() {
     alert("제목이 클립보드에 복사되었습니다!");
   };
 
-  // 버튼 활성화 조건(원하면 더 빡세게 가능)
+  // 버튼 활성화 조건
   const canCopyTitle =
     (!!currentWaveNumber && currentWaveNumber.trim().length > 0) ||
     (!link.trim() && manualWaveNumber.trim().length > 0);
 
-  // ✅ 'ㅇㅇ'일 때만 식별코드 입력 활성화
+  //'ㅇㅇ'일 때만 식별코드 입력 활성화
   const isAnon = name.trim() === "ㅇㅇ";
 
   return (
@@ -175,7 +174,7 @@ export default function App() {
           const next = e.target.value;
           setName(next);
 
-          // ✅ 'ㅇㅇ'이 아니면 식별코드 입력 비활성 + 값도 비움
+          //'ㅇㅇ'이 아니면 식별코드 입력 비활성 + 값도 비움
           if (next.trim() !== "ㅇㅇ") {
             setCode("");
           }
@@ -202,7 +201,7 @@ export default function App() {
         {loading ? "생성 중..." : "템플릿 생성"}
       </button>
 
-      {/* ✅ 제목 복사 버튼 */}
+      {/* 제목 복사 버튼 */}
       <button onClick={handleCopyTitle} disabled={loading || !canCopyTitle}>
         제목 복사
       </button>
