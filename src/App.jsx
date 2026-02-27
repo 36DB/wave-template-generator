@@ -43,7 +43,7 @@ export default function App() {
 
       setLoading(true);
 
-      const template = await fetch("/template.txt").then((r) => r.text());
+      const template = await fetch(`${import.meta.env.BASE_URL}template.txt`).then((r) => r.text());
 
       // ===== 이전 글에서 가져올 값 =====
       let prevWaveNumber = "";
