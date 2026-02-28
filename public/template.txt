@@ -36,5 +36,6 @@ waveFlowchartPlaceholder
 1. 징거벨 오더가 가능한 반고닉/고닉 켚붕이만 참여
 2. 서로를 믿고 즐겁게 참여할 수 있도록 양심적인 참여를 부탁
 3. 주문 금액은 자유이지만, 예의상 한 끼 식사 정도는 주문
-4. 웨이브 템플릿 생성기를 사용하기! 사용법과 주소는 https://gall.dcinside.com/mgallery/board/view/?id=kfc&no=222437
-(백업 템플릿 생성기 주소 : https://kfcwave.vercel.app/)
+4. 웨이브 템플릿 생성기를 사용하기! 사용법과 주소는 https://gall.dcinside.com/m/kfc/222437
+(백업 생성기 주소 : https://kfcwave.vercel.app/)
+(백업 생성기 사용법 : https://gall.dcinside.com/m/kfc/222738)
