@@ -16,6 +16,23 @@ async function fetchWithTimeout(resource, options = {}, timeout = 120000) {
   }
 }
 
+// Normalize flowchart text: unify arrows, collapse spaces, ensure trailing arrow
+function normalizeFlow(flow) {
+  if (!flow) return "";
+  let f = String(flow);
+  // Normalize arrow tokens and surrounding spaces
+  f = f.replace(/\s*-\s*->\s*/g, " -> ");
+  f = f.replace(/\s*->\s*/g, " -> ");
+  // Collapse whitespace
+  f = f.replace(/\s+/g, " ").trim();
+  // Ensure single trailing ' ->'
+  f = f.replace(/\s*->\s*$/g, " ->");
+  if (f && !f.endsWith(" ->")) {
+    f = f + " ->";
+  }
+  return f;
+}
+
 export default function App() {
   const [link, setLink] = useState("");
   const [manualRelayPath, setManualRelayPath] = useState("");
@@ -64,16 +81,24 @@ export default function App() {
       if (manualRelayPath.trim()) {
         // 수동 붙여넣기된 릴레이 경로 사용
         const manual = manualRelayPath.trim();
-        prevFlow = manual;
+        prevFlow = normalizeFlow(manual);
 
-        // 붙여넣은 텍스트에서 웨이브 번호 시도 추출 (예: '웨이브 123')
-        const waveMatch = manual.match(/웨이브\s*(\d+)/i) || manual.match(/wave\s*(\d+)/i) || manual.match(/#?(\d{1,6})\b/);
-        if (waveMatch) {
-          prevWaveNumber = String(waveMatch[1]).trim();
-        } else if (manualWaveNumber.trim()) {
+        // 수동 웨이브 번호가 있으면 우선 사용
+        if (manualWaveNumber.trim()) {
           prevWaveNumber = manualWaveNumber.trim();
+        } else {
+          // 붙여넣은 텍스트에서 가능한 숫자 모두 찾아 '마지막' 숫자를 최신 웨이브로 사용
+          const numMatches = manual.match(/\d{1,6}/g);
+          if (numMatches && numMatches.length > 0) {
+            prevWaveNumber = String(numMatches[numMatches.length - 1]).trim();
+          } else {
+            // Fallback: '웨이브 123' 또는 'wave 123' 패턴
+            const waveMatch = manual.match(/웨이브\s*(\d+)/i) || manual.match(/wave\s*(\d+)/i) || manual.match(/#?(\d{1,6})\b/);
+            if (waveMatch) prevWaveNumber = String(waveMatch[1]).trim();
+          }
         }
-        // 제목 복사용 웨이브 번호 업데이트 (수동 릴레이에서 추출된 값)
+
+        // 제목 복사용 웨이브 번호 업데이트 (수동 웨이브 번호 우선)
         setCurrentWaveNumber(prevWaveNumber);
       } else if (link.trim()) {
         const res = await fetchWithTimeout(API_URL + encodeURIComponent(link.trim()), {}, 120000);
@@ -90,18 +115,7 @@ export default function App() {
         }
 
         prevWaveNumber = String(data.waveNumber).trim();
-        prevFlow = (data.flowLine || "").trim();
-
-        //흐름도 정리: '- ->' 같은 깨짐을 '->'로 복원
-        prevFlow = prevFlow.replace(/\s*-\s*->\s*/g, " -> ");
-        prevFlow = prevFlow.replace(/\s+/g, " ").trim();
-
-        //마지막에 화살표가 없으면 붙여서 이어붙이기 편하게
-        if (prevFlow && !prevFlow.endsWith("->")) {
-          prevFlow += " ->";
-        } else if (prevFlow && !prevFlow.endsWith(" ->")) {
-          prevFlow = prevFlow.replace(/->$/g, " ->");
-        }
+        prevFlow = normalizeFlow(data.flowLine || "");
 
         //제목 복사용 웨이브 번호 업데이트
         setCurrentWaveNumber(prevWaveNumber);
@@ -111,7 +125,7 @@ export default function App() {
       }
 
       // ===== 웨이브 번호 텍스트 (템플릿용) =====
-      const waveNumberText = link.trim() || manualRelayPath.trim() ? `웨이브 ${prevWaveNumber}` : `웨이브 ${manualWaveNumber.trim()}`;
+      const waveNumberText = (link.trim() || manualRelayPath.trim()) ? `웨이브 ${prevWaveNumber}` : `웨이브 ${manualWaveNumber.trim()}`;
 
       // ===== 흐름도 마지막에 본인 추가 =====
       let waveFlowchartText = "";
