@@ -125,7 +125,7 @@ export default function App() {
       }
 
       // ===== 웨이브 번호 텍스트 (템플릿용) =====
-      const waveNumberText = (link.trim() || manualRelayPath.trim()) ? `웨이브 ${prevWaveNumber}` : `웨이브 ${manualWaveNumber.trim()}`;
+      const waveNumberText = link.trim() || manualRelayPath.trim() ? `웨이브 ${prevWaveNumber}` : `웨이브 ${manualWaveNumber.trim()}`;
 
       // ===== 흐름도 마지막에 본인 추가 =====
       let waveFlowchartText = "";
@@ -192,7 +192,13 @@ export default function App() {
     <div className="container">
       <h1>웨이브 템플릿 생성기</h1>
 
-      <input type="text" placeholder="이전 주자 글 링크(첫 주자일 경우 비워두기)" value={link} onChange={(e) => setLink(e.target.value)} />
+      <input
+        type="text"
+        placeholder="이전 주자 글 링크(첫 주자일 경우 비워두기)"
+        value={link}
+        onChange={(e) => setLink(e.target.value)}
+        disabled={!!manualRelayPath.trim()}
+      />
 
       <input
         type="text"
@@ -233,7 +239,13 @@ export default function App() {
         type="text"
         placeholder="수동 릴레이 경로 붙여넣기 (이전 글 크롤링 대신; 필요 시 첫 주자용 번호 입력 가능)"
         value={manualRelayPath}
-        onChange={(e) => setManualRelayPath(e.target.value)}
+        onChange={(e) => {
+          const v = e.target.value;
+          setManualRelayPath(v);
+          if (v.trim()) {
+            setLink("");
+          }
+        }}
       />
 
       <button onClick={handleGenerate} disabled={loading}>
