@@ -14,6 +14,43 @@ export default function App() {
 
   const [currentWaveNumber, setCurrentWaveNumber] = useState("");
 
+  // 버튼 활성화 조건
+  const canCopyTitle =
+    (!!currentWaveNumber && currentWaveNumber.trim().length > 0) ||
+    (!link.trim() && manualWaveNumber.trim().length > 0);
+
+  //'ㅇㅇ'일 때만 식별코드 입력 활성화
+  const isAnon = name.trim() === "ㅇㅇ";
+
+  const copyTextSafely = async (text) => {
+    try {
+      await navigator.clipboard.writeText(text);
+      return true;
+    } catch {
+      const textarea = document.createElement("textarea");
+      textarea.value = text;
+      textarea.setAttribute("readonly", "");
+      textarea.style.position = "fixed";
+      textarea.style.top = "-9999px";
+      textarea.style.left = "-9999px";
+      document.body.appendChild(textarea);
+
+      textarea.focus();
+      textarea.select();
+      textarea.setSelectionRange(0, textarea.value.length);
+
+      let ok = false;
+      try {
+        ok = document.execCommand("copy");
+      } catch {
+        ok = false;
+      }
+
+      document.body.removeChild(textarea);
+      return ok;
+    }
+  };
+
   const handleGenerate = async () => {
     try {
       // ===== 기본 검증 =====
@@ -121,8 +158,16 @@ export default function App() {
         .replaceAll("waveFlowchartPlaceholder", waveFlowchartText);
 
       setResult(filled);
-      await navigator.clipboard.writeText(filled);
-      alert("클립보드에 복사되었습니다! 꼭 이벤트 탭에 작성해주세요 :D");
+
+      try {
+        await navigator.clipboard.writeText(filled);
+        alert("클립보드에 복사되었습니다! 꼭 이벤트 탭에 작성해주세요 :D");
+      } catch (clipboardError) {
+        alert(
+          "자동 복사에 실패했습니다.\niOS/사파리 유저는 본문 복사 버튼을 눌러주세요."
+        );
+        console.error(clipboardError);
+      }
     } catch (e) {
       alert("오류 발생: " + (e?.message || String(e)));
       console.error(e);
@@ -143,17 +188,30 @@ export default function App() {
     }
 
     const title = `${WAVE_NAME} 웨이브 ${waveNum}`;
-    await navigator.clipboard.writeText(title);
-    alert("제목이 클립보드에 복사되었습니다!");
+    const ok = await copyTextSafely(title);
+
+    if (ok) {
+      alert("제목이 클립보드에 복사되었습니다!");
+    } else {
+      alert("제목 복사에 실패했습니다. 직접 선택 후 복사해주세요.");
+    }
   };
 
-  // 버튼 활성화 조건
-  const canCopyTitle =
-    (!!currentWaveNumber && currentWaveNumber.trim().length > 0) ||
-    (!link.trim() && manualWaveNumber.trim().length > 0);
+  //본문 복사 버튼 핸들러
+  const handleCopyBody = async () => {
+    if (!result.trim()) {
+      alert("먼저 템플릿을 생성해주세요.");
+      return;
+    }
 
-  //'ㅇㅇ'일 때만 식별코드 입력 활성화
-  const isAnon = name.trim() === "ㅇㅇ";
+    const ok = await copyTextSafely(result);
+
+    if (ok) {
+      alert("본문이 클립보드에 복사되었습니다!");
+    } else {
+      alert("본문 복사에 실패했습니다. 직접 선택 후 복사해주세요.");
+    }
+  };
 
   return (
     <div className="container">
@@ -204,6 +262,11 @@ export default function App() {
       {/* 제목 복사 버튼 */}
       <button onClick={handleCopyTitle} disabled={loading || !canCopyTitle}>
         제목 복사
+      </button>
+
+      {/* 본문 복사 버튼 */}
+      <button onClick={handleCopyBody} disabled={loading || !result.trim()}>
+        본문 복사
       </button>
 
       <pre className="result">{result}</pre>
