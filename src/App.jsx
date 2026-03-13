@@ -51,8 +51,14 @@ export default function App() {
 
   const normalizeFlow = (flow) => {
     let cleaned = (flow || "").trim();
+
+    // 이미 깨진 A - -> B 복원
     cleaned = cleaned.replace(/\s*-\s*->\s*/g, " -> ");
-    cleaned = cleaned.replace(/\s*>\s*/g, " -> ");
+
+    // 단독 > 만 -> 로 변환 (이미 있는 -> 는 건드리지 않음)
+    cleaned = cleaned.replace(/(?<!-)\s*>\s*/g, " -> ");
+
+    cleaned = cleaned.replace(/\s*->\s*/g, " -> ");
     cleaned = cleaned.replace(/\s+/g, " ").trim();
 
     if (cleaned && !cleaned.endsWith("->")) {
