@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import "./App.css";
 
 const WAVE_NAME = "[금토일웨이브]";
@@ -283,6 +284,10 @@ export default function App() {
       <button onClick={handleCopyBody} disabled={loading || !result.trim()}>
         본문 복사
       </button>
+
+      <Link to="/board" style={{ textDecoration: "none" }}>
+        <button type="button">현황판 보기</button>
+      </Link>
 
       <pre className="result">{result}</pre>
     </div>
