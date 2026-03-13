@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import "./App.css";
 
 const WAVE_NAME = "[금토일웨이브]";
@@ -20,6 +20,12 @@ export default function App() {
     (!link.trim() && manualWaveNumber.trim().length > 0);
 
   const isAnon = name.trim() === "ㅇㅇ";
+
+  const navigate = useNavigate();
+
+  const handleGoBoard = () => {
+    navigate("/board");
+  };
 
   const copyTextSafely = async (text) => {
     try {
@@ -285,9 +291,9 @@ export default function App() {
         본문 복사
       </button>
 
-      <Link to="/board" style={{ textDecoration: "none" }}>
-        <button type="button">현황판 보기</button>
-      </Link>
+      <button onClick={handleGoBoard}>
+        현황판 보기
+      </button>
 
       <pre className="result">{result}</pre>
     </div>

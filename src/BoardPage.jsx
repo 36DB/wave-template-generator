@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import "./App.css";
 
 const DEFAULT_WAVE_NAME = "[금토일웨이브]";
@@ -8,9 +8,14 @@ const API_BASE = "https://wave-crwaler-api.vercel.app";
 export default function BoardPage() {
   const [waveName, setWaveName] = useState(DEFAULT_WAVE_NAME);
   const [loading, setLoading] = useState(false);
-  const [runInfo, setRunInfo] = useState(null);
   const [summaries, setSummaries] = useState([]);
   const [error, setError] = useState("");
+
+  const navigate = useNavigate();
+
+  const handleGoBoard = () => {
+    navigate("/");
+  };
 
   const fetchBoard = async () => {
     try {
@@ -23,16 +28,13 @@ export default function BoardPage() {
       const data = await res.json();
 
       if (!res.ok || data.error) {
-        setRunInfo(null);
         setSummaries([]);
         setError(data.error || "현황판 조회 실패");
         return;
       }
 
-      setRunInfo(data.run || null);
       setSummaries(data.summaries || []);
     } catch (err) {
-      setRunInfo(null);
       setSummaries([]);
       setError(err?.message || "요청 실패");
     } finally {
@@ -61,21 +63,11 @@ export default function BoardPage() {
         {loading ? "불러오는 중..." : "새로고침"}
       </button>
 
-      <Link to="/" style={{ textDecoration: "none" }}>
-        <button type="button">생성기로 돌아가기</button>
-      </Link>
+      <button onClick={handleGoBoard}>
+        생성기로 돌아가기
+      </button>
 
       {error ? <pre className="result">{error}</pre> : null}
-
-      {runInfo ? (
-        <pre className="result">
-{`현재 Run
-ID: ${runInfo.id}
-상태: ${runInfo.status}
-시작 시각: ${runInfo.started_at}
-종료 시각: ${runInfo.ended_at || "(진행 중)"}`}
-        </pre>
-      ) : null}
 
       {summaries.length === 0 && !loading && !error ? (
         <pre className="result">표시할 현황이 없습니다.</pre>
