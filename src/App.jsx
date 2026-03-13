@@ -95,45 +95,30 @@ export default function App() {
       let resolvedWaveNumber = "";
       let prevFlow = "";
 
+      // =========================
+      // 이전 글 링크가 있는 경우: 크롤링만 사용
+      // =========================
       if (link.trim()) {
         const res = await fetch(CRAWL_API_URL + encodeURIComponent(link.trim()));
         const data = await res.json();
 
-        if (data.error || !data.waveNumber) {
-          const fallbackWaveNumber = window.prompt(
-            "이전 글을 불러오지 못했습니다.\n몇 번 웨이브인지 숫자를 입력해주세요."
-          );
-
-          if (!fallbackWaveNumber || !/^\d+$/.test(fallbackWaveNumber.trim())) {
-            alert("유효한 웨이브 번호를 입력해야 합니다.");
-            return;
-          }
-
-          const fallbackRes = await fetch(
-            `${API_BASE}/state/latest?waveName=${encodeURIComponent(
-              WAVE_NAME
-            )}&waveNumber=${encodeURIComponent(fallbackWaveNumber.trim())}`
-          );
-          const fallbackData = await fallbackRes.json();
-
-          if (fallbackData.error || !fallbackData.state) {
-            alert("크롤링 실패했고, 해당 웨이브의 저장된 상태도 없습니다.");
-            return;
-          }
-
-          resolvedWaveNumber = String(fallbackData.state.wave_number).trim();
-          prevFlow = normalizeFlow(fallbackData.state.flow_text || "");
-
-          alert(
-            `이전 글을 불러오지 못해 저장된 웨이브 ${resolvedWaveNumber} 상태를 사용합니다.`
-          );
-        } else {
-          resolvedWaveNumber = String(data.waveNumber).trim();
-          prevFlow = normalizeFlow(data.flowLine || "");
+        if (data.error) {
+          alert("크롤링 실패: " + data.error);
+          return;
         }
 
+        if (!data.waveNumber) {
+          alert("웨이브 번호를 찾지 못했습니다.");
+          return;
+        }
+
+        resolvedWaveNumber = String(data.waveNumber).trim();
+        prevFlow = normalizeFlow(data.flowLine || "");
         setCurrentWaveNumber(resolvedWaveNumber);
       } else {
+        // =========================
+        // 첫 주자
+        // =========================
         resolvedWaveNumber = manualWaveNumber.trim();
         setCurrentWaveNumber(resolvedWaveNumber);
       }
@@ -167,7 +152,10 @@ export default function App() {
 
       setResult(filled);
 
-      // 현재 상태 자동 저장
+      // =========================
+      // DB 저장은 부가 기능
+      // 템플릿 생성 성공 후 현재 상태를 저장만 함
+      // =========================
       try {
         await fetch(`${API_BASE}/state/save`, {
           method: "POST",
