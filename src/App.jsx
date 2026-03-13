@@ -2,7 +2,7 @@ import { useState } from "react";
 import "./App.css";
 
 const WAVE_NAME = "[금토일웨이브]";
-const API_URL = "https://wave-crwaler-api.onrender.com/crawl?url=";
+const API_URL = "https://wave-crwaler-api.vercel.app/crawl?url=";
 
 export default function App() {
   const [link, setLink] = useState("");
