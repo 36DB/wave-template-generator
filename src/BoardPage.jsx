@@ -50,7 +50,7 @@ export default function BoardPage() {
 
   return (
     <div className="container">
-      <h1>---------------------웨이브 현황판---------------------</h1>
+      <h1>웨이브 현황판</h1>
 
       <input
         type="text"
