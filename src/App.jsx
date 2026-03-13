@@ -2,7 +2,8 @@ import { useState } from "react";
 import "./App.css";
 
 const WAVE_NAME = "[금토일웨이브]";
-const API_URL = "https://wave-crwaler-api.vercel.app/crawl?url=";
+const API_BASE = "https://wave-crwaler-api.vercel.app";
+const CRAWL_API_URL = `${API_BASE}/crawl?url=`;
 
 export default function App() {
   const [link, setLink] = useState("");
@@ -11,15 +12,12 @@ export default function App() {
   const [result, setResult] = useState("");
   const [manualWaveNumber, setManualWaveNumber] = useState("");
   const [loading, setLoading] = useState(false);
-
   const [currentWaveNumber, setCurrentWaveNumber] = useState("");
 
-  // 버튼 활성화 조건
   const canCopyTitle =
     (!!currentWaveNumber && currentWaveNumber.trim().length > 0) ||
     (!link.trim() && manualWaveNumber.trim().length > 0);
 
-  //'ㅇㅇ'일 때만 식별코드 입력 활성화
   const isAnon = name.trim() === "ㅇㅇ";
 
   const copyTextSafely = async (text) => {
@@ -51,27 +49,38 @@ export default function App() {
     }
   };
 
+  const normalizeFlow = (flow) => {
+    let cleaned = (flow || "").trim();
+    cleaned = cleaned.replace(/\s*-\s*->\s*/g, " -> ");
+    cleaned = cleaned.replace(/\s*>\s*/g, " -> ");
+    cleaned = cleaned.replace(/\s+/g, " ").trim();
+
+    if (cleaned && !cleaned.endsWith("->")) {
+      cleaned += " ->";
+    } else if (cleaned && !cleaned.endsWith(" ->")) {
+      cleaned = cleaned.replace(/->$/g, " ->");
+    }
+
+    return cleaned;
+  };
+
   const handleGenerate = async () => {
     try {
-      // ===== 기본 검증 =====
       if (!name.trim()) {
         alert("닉네임을 입력해주세요.");
         return;
       }
 
-      // ㅇㅇ 반고닉은 식별코드 필수
       if (name.trim() === "ㅇㅇ" && !code.trim()) {
         alert("ㅇㅇ 반고닉은 식별코드를 입력해야 합니다.");
         return;
       }
 
-      // 첫 주자면 웨이브 번호 필수
       if (!link.trim() && !manualWaveNumber.trim()) {
         alert("첫 주자는 웨이브 번호를 입력해야 합니다.");
         return;
       }
 
-      // 이전 글 링크 있으면 수동 웨이브 번호 금지
       if (link.trim() && manualWaveNumber.trim()) {
         alert("이전 주자 링크가 있으면 웨이브 번호를 입력하면 안 됩니다.");
         return;
@@ -83,58 +92,59 @@ export default function App() {
         `${import.meta.env.BASE_URL}template.txt`
       ).then((r) => r.text());
 
-      // ===== 이전 글에서 가져올 값 =====
-      let prevWaveNumber = "";
+      let resolvedWaveNumber = "";
       let prevFlow = "";
 
       if (link.trim()) {
-        const res = await fetch(API_URL + encodeURIComponent(link.trim()));
+        const res = await fetch(CRAWL_API_URL + encodeURIComponent(link.trim()));
         const data = await res.json();
 
-        if (data.error) {
-          alert("크롤링 실패: " + data.error);
-          return;
+        if (data.error || !data.waveNumber) {
+          const fallbackWaveNumber = window.prompt(
+            "이전 글을 불러오지 못했습니다.\n몇 번 웨이브인지 숫자를 입력해주세요."
+          );
+
+          if (!fallbackWaveNumber || !/^\d+$/.test(fallbackWaveNumber.trim())) {
+            alert("유효한 웨이브 번호를 입력해야 합니다.");
+            return;
+          }
+
+          const fallbackRes = await fetch(
+            `${API_BASE}/state/latest?waveName=${encodeURIComponent(
+              WAVE_NAME
+            )}&waveNumber=${encodeURIComponent(fallbackWaveNumber.trim())}`
+          );
+          const fallbackData = await fallbackRes.json();
+
+          if (fallbackData.error || !fallbackData.state) {
+            alert("크롤링 실패했고, 해당 웨이브의 저장된 상태도 없습니다.");
+            return;
+          }
+
+          resolvedWaveNumber = String(fallbackData.state.wave_number).trim();
+          prevFlow = normalizeFlow(fallbackData.state.flow_text || "");
+
+          alert(
+            `이전 글을 불러오지 못해 저장된 웨이브 ${resolvedWaveNumber} 상태를 사용합니다.`
+          );
+        } else {
+          resolvedWaveNumber = String(data.waveNumber).trim();
+          prevFlow = normalizeFlow(data.flowLine || "");
         }
 
-        if (!data.waveNumber) {
-          alert("웨이브 번호를 찾지 못했습니다.");
-          return;
-        }
-
-        prevWaveNumber = String(data.waveNumber).trim();
-        prevFlow = (data.flowLine || "").trim();
-
-        //흐름도 정리: '- ->' 같은 깨짐을 '->'로 복원
-        prevFlow = prevFlow.replace(/\s*-\s*->\s*/g, " -> ");
-        prevFlow = prevFlow.replace(/\s+/g, " ").trim();
-
-        //마지막에 화살표가 없으면 붙여서 이어붙이기 편하게
-        if (prevFlow && !prevFlow.endsWith("->")) {
-          prevFlow += " ->";
-        } else if (prevFlow && !prevFlow.endsWith(" ->")) {
-          prevFlow = prevFlow.replace(/->$/g, " ->");
-        }
-
-        //제목 복사용 웨이브 번호 업데이트
-        setCurrentWaveNumber(prevWaveNumber);
+        setCurrentWaveNumber(resolvedWaveNumber);
       } else {
-        //첫 주자: 입력한 웨이브 번호를 제목 복사용으로도 저장
-        setCurrentWaveNumber(manualWaveNumber.trim());
+        resolvedWaveNumber = manualWaveNumber.trim();
+        setCurrentWaveNumber(resolvedWaveNumber);
       }
 
-      // ===== 웨이브 번호 텍스트 (템플릿용) =====
-      const waveNumberText = link.trim()
-        ? `웨이브 ${prevWaveNumber}`
-        : `웨이브 ${manualWaveNumber.trim()}`;
+      const waveNumberText = `웨이브 ${resolvedWaveNumber}`;
 
-      // ===== 흐름도 마지막에 본인 추가 =====
       let waveFlowchartText = "";
 
       if (!link.trim()) {
         if (name.trim() === "ㅇㅇ") {
           waveFlowchartText = `ㅇㅇ(${code.trim()}) ->`;
-        } else if (code.trim()) {
-          waveFlowchartText = `${name.trim()} -> ${code.trim()} ->`;
         } else {
           waveFlowchartText = `${name.trim()} ->`;
         }
@@ -143,8 +153,6 @@ export default function App() {
 
         if (name.trim() === "ㅇㅇ") {
           waveFlowchartText = `${base}ㅇㅇ(${code.trim()}) ->`;
-        } else if (code.trim()) {
-          waveFlowchartText = `${base}${name.trim()} -> ${code.trim()} ->`;
         } else {
           waveFlowchartText = `${base}${name.trim()} ->`;
         }
@@ -158,6 +166,24 @@ export default function App() {
         .replaceAll("waveFlowchartPlaceholder", waveFlowchartText);
 
       setResult(filled);
+
+      // 현재 상태 자동 저장
+      try {
+        await fetch(`${API_BASE}/state/save`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            waveName: WAVE_NAME,
+            waveNumber: Number(resolvedWaveNumber),
+            flowText: waveFlowchartText,
+            lastPostUrl: link.trim() || "",
+          }),
+        });
+      } catch (saveError) {
+        console.error("상태 저장 실패:", saveError);
+      }
 
       try {
         await navigator.clipboard.writeText(filled);
@@ -176,14 +202,13 @@ export default function App() {
     }
   };
 
-  //제목 복사 버튼 핸들러
   const handleCopyTitle = async () => {
     const waveNum =
       (link.trim() ? currentWaveNumber : manualWaveNumber.trim()) ||
       currentWaveNumber;
 
     if (!waveNum) {
-      alert("먼저 템플릿을 생성하거나(크롤링) 첫 주자 웨이브 번호를 입력해주세요.");
+      alert("먼저 템플릿을 생성하거나 첫 주자 웨이브 번호를 입력해주세요.");
       return;
     }
 
@@ -197,7 +222,6 @@ export default function App() {
     }
   };
 
-  //본문 복사 버튼 핸들러
   const handleCopyBody = async () => {
     if (!result.trim()) {
       alert("먼저 템플릿을 생성해주세요.");
@@ -232,7 +256,6 @@ export default function App() {
           const next = e.target.value;
           setName(next);
 
-          //'ㅇㅇ'이 아니면 식별코드 입력 비활성 + 값도 비움
           if (next.trim() !== "ㅇㅇ") {
             setCode("");
           }
@@ -259,12 +282,10 @@ export default function App() {
         {loading ? "생성 중..." : "템플릿 생성"}
       </button>
 
-      {/* 제목 복사 버튼 */}
       <button onClick={handleCopyTitle} disabled={loading || !canCopyTitle}>
         제목 복사
       </button>
 
-      {/* 본문 복사 버튼 */}
       <button onClick={handleCopyBody} disabled={loading || !result.trim()}>
         본문 복사
       </button>
