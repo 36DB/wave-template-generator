@@ -60,10 +60,10 @@ export default function BoardPage() {
         생성기로 돌아가기
       </button>
 
-      {error ? <pre className="board-card">{error}</pre> : null}
+      {error ? <pre className="result">{error}</pre> : null}
 
       {summaries.length === 0 && !loading && !error ? (
-        <pre className="board-card">표시할 현황이 없습니다.</pre>
+        <pre className="result">표시할 현황이 없습니다.</pre>
       ) : null}
 
       <div className="board-grid">
@@ -72,7 +72,16 @@ export default function BoardPage() {
           const infoMap = summary.post_info_by_index || {};
 
           return (
-            <div key={summary.wave} className="board-wave">
+            <div
+              key={summary.wave}
+              className="result"
+              style={{
+                whiteSpace: "normal",
+                maxHeight: "400px",
+                overflowY: "auto",
+                wordBreak: "keep-all",
+              }}
+            >
               <h2 style={{ marginTop: 0 }}>Wave {summary.wave}</h2>
 
               {chain.length === 0 ? (
@@ -106,6 +115,8 @@ export default function BoardPage() {
                             ) : (
                               <span>모집글(정보없음)</span>
                             )}
+
+                            <span> / </span>
 
                             {gallogUrl ? (
                               <a href={gallogUrl} target="_blank" rel="noreferrer">
@@ -141,6 +152,8 @@ export default function BoardPage() {
                             ) : (
                               <span>모집글(정보없음)</span>
                             )}
+
+                            <span> / </span>
 
                             {gallogUrl ? (
                               <a href={gallogUrl} target="_blank" rel="noreferrer">

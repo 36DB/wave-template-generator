@@ -42,7 +42,7 @@ body {
 .result {
   background: #222;
   padding: 15px;
-  white-space: pre-wrap;
+  white-space: normal;
   max-height: 400px;
   overflow-y: auto;
   border-radius: 8px;
@@ -107,7 +107,6 @@ input:focus-visible {
   white-space: normal;
   word-break: break-word;
   overflow: visible;
-  overflow-y: auto;
   max-height: 430px;
   min-width: 0;
 }
