@@ -14,6 +14,7 @@ export default function App() {
   const [manualWaveNumber, setManualWaveNumber] = useState("");
   const [loading, setLoading] = useState(false);
   const [currentWaveNumber, setCurrentWaveNumber] = useState("");
+  const [currentWavePosition, setCurrentWavePosition] = useState("");
 
   const canCopyTitle =
     (!!currentWaveNumber && currentWaveNumber.trim().length > 0) ||
@@ -75,6 +76,13 @@ export default function App() {
     }
 
     return cleaned;
+  };
+
+  const countParticipants = (flowText) => {
+    return String(flowText || "")
+      .split("->")
+      .map((s) => s.trim())
+      .filter(Boolean).length;
   };
 
   const handleGenerate = async () => {
@@ -158,6 +166,9 @@ export default function App() {
         waveFlowchartText = waveFlowchartText.replace(/\s+/g, " ").trim();
       }
 
+      const participantCount = countParticipants(waveFlowchartText);
+      setCurrentWavePosition(String(participantCount));
+
       const filled = template
         .replaceAll("waveNumberPlaceholder", waveNumberText)
         .replaceAll("waveNamePlaceholder", WAVE_NAME)
@@ -213,7 +224,10 @@ export default function App() {
       return;
     }
 
-    const title = `${WAVE_NAME} 웨이브 ${waveNum}`;
+    const title = currentWavePosition
+      ? `${WAVE_NAME} 웨이브 ${waveNum}-${currentWavePosition}`
+      : `${WAVE_NAME} 웨이브 ${waveNum}`;
+
     const ok = await copyTextSafely(title);
 
     if (ok) {
