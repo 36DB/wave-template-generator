@@ -1,8 +1,9 @@
 import { useState } from "react";
 import "./App.css";
 
-const WAVE_NAME = "[투움바웨이브]";
-const API_URL = "https://wave-crwaler-api.onrender.com/crawl?url=";
+const WAVE_NAME = "[금토일웨이브]";
+const API_URL2 = "https://wave-crwaler-api.onrender.com/crawl?url=";
+const API_URL = "https://wave-crwaler-api.vercel.app/crawl?url=";
 
 // Fetch wrapper with timeout (default 2 minutes) for requests to the crawler API
 async function fetchWithTimeout(resource, options = {}, timeout = 120000) {
