@@ -107,7 +107,8 @@ input:focus-visible {
   white-space: normal;
   word-break: break-word;
   overflow: visible;
-  max-height: none;
+  overflow-y: auto;
+  max-height: 430px;
   min-width: 0;
 }
 
