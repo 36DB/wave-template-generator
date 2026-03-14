@@ -10,12 +10,7 @@ export default function BoardPage() {
   const [loading, setLoading] = useState(false);
   const [summaries, setSummaries] = useState([]);
   const [error, setError] = useState("");
-
   const navigate = useNavigate();
-
-  const handleGoBoard = () => {
-    navigate("/");
-  };
 
   const fetchBoard = async () => {
     try {
@@ -46,8 +41,6 @@ export default function BoardPage() {
     fetchBoard();
   }, []);
 
-  const canonName = (s) => String(s || "").replace(/\s+/g, "").trim();
-
   return (
     <div className="container">
       <h1>웨이브 현황판</h1>
@@ -63,22 +56,23 @@ export default function BoardPage() {
         {loading ? "불러오는 중..." : "새로고침"}
       </button>
 
-      <button onClick={handleGoBoard}>
+      <button type="button" onClick={() => navigate("/")}>
         생성기로 돌아가기
       </button>
 
-      {error ? <pre className="result">{error}</pre> : null}
+      {error ? <pre className="board-card">{error}</pre> : null}
 
       {summaries.length === 0 && !loading && !error ? (
-        <pre className="result">표시할 현황이 없습니다.</pre>
+        <pre className="board-card">표시할 현황이 없습니다.</pre>
       ) : null}
+
       <div className="board-grid">
         {summaries.map((summary) => {
           const chain = summary.final_chain || [];
-          const infoMap = summary.post_info_by_canon || {};
+          const infoMap = summary.post_info_by_index || {};
 
           return (
-            <div key={summary.wave} className="result" style={{ marginBottom: "16px" }}>
+            <div key={summary.wave} className="board-wave">
               <h2 style={{ marginTop: 0 }}>Wave {summary.wave}</h2>
 
               {chain.length === 0 ? (
@@ -88,7 +82,7 @@ export default function BoardPage() {
                   {chain.length >= 2 &&
                     chain.slice(0, -1).map((from, idx) => {
                       const to = chain[idx + 1];
-                      const info = infoMap[canonName(from)];
+                      const info = infoMap[idx];
                       const postUrl = info?.url || "";
                       const writerId = info?.writer_id || "";
                       const gallogUrl = writerId
@@ -96,25 +90,21 @@ export default function BoardPage() {
                         : "";
 
                       return (
-                        <li key={`${summary.wave}-${idx}`} style={{ marginBottom: "12px" }}>
+                        <li
+                          key={`${summary.wave}-${idx}`}
+                          style={{ marginBottom: "12px" }}
+                        >
                           <div>
                             {from} → {to}
                             {idx === 0 ? " (시작)" : ""}
                           </div>
-                          <div style={{ marginLeft: "12px" }}>
+                          <div className="board-sub-links">
                             {postUrl ? (
-                              <a
-                                href={postUrl}
-                                target="_blank"
-                                rel="noreferrer"
-                                style={{ marginRight: "8px" }}
-                              >
+                              <a href={postUrl} target="_blank" rel="noreferrer">
                                 모집글(링크)
                               </a>
                             ) : (
-                              <span style={{ marginRight: "8px", color: "#bbb" }}>
-                                모집글(정보없음)
-                              </span>
+                              <span>모집글(정보없음)</span>
                             )}
 
                             {gallogUrl ? (
@@ -122,52 +112,47 @@ export default function BoardPage() {
                                 갤로그(링크)
                               </a>
                             ) : (
-                              <span style={{ color: "#bbb" }}>갤로그(정보없음)</span>
+                              <span>갤로그(정보없음)</span>
                             )}
                           </div>
                         </li>
                       );
                     })}
 
-                  {chain.length >= 1 && (() => {
-                    const last = chain[chain.length - 1];
-                    const info = infoMap[canonName(last)];
-                    const postUrl = info?.url || "";
-                    const writerId = info?.writer_id || "";
-                    const gallogUrl = writerId
-                      ? `https://gallog.dcinside.com/${writerId}`
-                      : "";
+                  {chain.length >= 1 &&
+                    (() => {
+                      const lastIdx = chain.length - 1;
+                      const last = chain[lastIdx];
+                      const info = infoMap[lastIdx];
+                      const postUrl = info?.url || "";
+                      const writerId = info?.writer_id || "";
+                      const gallogUrl = writerId
+                        ? `https://gallog.dcinside.com/${writerId}`
+                        : "";
 
-                    return (
-                      <li>
-                        <div>{last} → END</div>
-                        <div style={{ marginLeft: "12px" }}>
-                          {postUrl ? (
-                            <a
-                              href={postUrl}
-                              target="_blank"
-                              rel="noreferrer"
-                              style={{ marginRight: "8px" }}
-                            >
-                              모집글(링크)
-                            </a>
-                          ) : (
-                            <span style={{ marginRight: "8px", color: "#bbb" }}>
-                              모집글(정보없음)
-                            </span>
-                          )}
+                      return (
+                        <li>
+                          <div>{last} → END</div>
+                          <div className="board-sub-links">
+                            {postUrl ? (
+                              <a href={postUrl} target="_blank" rel="noreferrer">
+                                모집글(링크)
+                              </a>
+                            ) : (
+                              <span>모집글(정보없음)</span>
+                            )}
 
-                          {gallogUrl ? (
-                            <a href={gallogUrl} target="_blank" rel="noreferrer">
-                              갤로그(링크)
-                            </a>
-                          ) : (
-                            <span style={{ color: "#bbb" }}>갤로그(정보없음)</span>
-                          )}
-                        </div>
-                      </li>
-                    );
-                  })()}
+                            {gallogUrl ? (
+                              <a href={gallogUrl} target="_blank" rel="noreferrer">
+                                갤로그(링크)
+                              </a>
+                            ) : (
+                              <span>갤로그(정보없음)</span>
+                            )}
+                          </div>
+                        </li>
+                      );
+                    })()}
                 </ol>
               )}
             </div>
