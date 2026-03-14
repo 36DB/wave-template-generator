@@ -26,11 +26,6 @@ export default function App() {
 
   const handleGoBoard = () => {
     navigate("/board");
-    if (typeof window.gtag === "function") {
-      window.gtag("event", "view_board_click", {
-        wave_name: WAVE_NAME,
-      });
-    }
   };
 
   const copyTextSafely = async (text) => {
@@ -217,12 +212,6 @@ export default function App() {
     } finally {
       setLoading(false);
     }
-    if (typeof window.gtag === "function") {
-      window.gtag("event", "generate_template", {
-        wave_name: WAVE_NAME,
-        wave_number: resolvedWaveNumber,
-      });
-    }
   };
 
   const handleCopyTitle = async () => {
@@ -246,12 +235,6 @@ export default function App() {
     } else {
       alert("제목 복사에 실패했습니다. 직접 선택 후 복사해주세요.");
     }
-    if (ok && typeof window.gtag === "function") {
-      window.gtag("event", "copy_title", {
-        wave_name: WAVE_NAME,
-        wave_number: waveNum,
-      });
-    }
   };
 
   const handleCopyBody = async () => {
@@ -266,11 +249,6 @@ export default function App() {
       alert("본문이 클립보드에 복사되었습니다!");
     } else {
       alert("본문 복사에 실패했습니다. 직접 선택 후 복사해주세요.");
-    }
-    if (ok && typeof window.gtag === "function") {
-      window.gtag("event", "copy_body", {
-        wave_name: WAVE_NAME,
-      });
     }
   };
 
